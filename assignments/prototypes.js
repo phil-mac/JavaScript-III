@@ -15,6 +15,15 @@
   * dimensions (These represent the character's size in the video game)
   * destroy() // prototype method that returns: `${this.name} was removed from the game.`
 */
+function GameObject(attrs){
+  this.createdAt = attrs.createdAt;
+  this.name = attrs.name;
+  this.dimensions = attrs.dimensions;
+}
+
+GameObject.prototype.destroy = function(){
+  return `${this.name} was removed from the game.`;
+}
 
 /*
   === CharacterStats ===
@@ -22,6 +31,16 @@
   * takeDamage() // prototype method -> returns the string '<object name> took damage.'
   * should inherit destroy() from GameObject's prototype
 */
+function CharacterStats(attrs){
+  GameObject.call(this, attrs);
+  this.healthPoints = attrs.healthPoints;
+}
+
+CharacterStats.prototype = Object.create(GameObject.prototype);
+
+CharacterStats.prototype.takeDamage = function(){
+  return `${this.name} took damage.`;
+}
 
 /*
   === Humanoid (Having an appearance or character resembling that of a human.) ===
@@ -32,7 +51,19 @@
   * should inherit destroy() from GameObject through CharacterStats
   * should inherit takeDamage() from CharacterStats
 */
- 
+function Humanoid(attrs){
+  CharacterStats.call(this, attrs);
+  this.team = attrs.team;
+  this.weapons = attrs.weapons;
+  this.language = attrs.language;
+}
+
+Humanoid.prototype = Object.create(CharacterStats.prototype);
+
+Humanoid.prototype.greet = function(){
+  return `${this.name} offers a greeting in ${this.language}`;
+}
+
 /*
   * Inheritance chain: GameObject -> CharacterStats -> Humanoid
   * Instances of Humanoid should have all of the same properties as CharacterStats and GameObject.
@@ -41,7 +72,7 @@
 
 // Test you work by un-commenting these 3 objects and the list of console logs below:
 
-/*
+
   const mage = new Humanoid({
     createdAt: new Date(),
     dimensions: {
@@ -102,9 +133,79 @@
   console.log(archer.greet()); // Lilith offers a greeting in Elvish.
   console.log(mage.takeDamage()); // Bruce took damage.
   console.log(swordsman.destroy()); // Sir Mustachio was removed from the game.
-*/
+
 
   // Stretch task: 
   // * Create Villain and Hero constructor functions that inherit from the Humanoid constructor function.  
+  function Villain(attrs){
+    Humanoid.call(this, attrs);
+    this.spellDamage = attrs.spellDamage;
+  }
+  Villain.prototype = Object.create(Humanoid.prototype);
+  
+  function Hero(attrs){
+    Humanoid.call(this, attrs);
+    this.meleDamage = attrs.meleDamage;
+  }
+  Hero.prototype = Object.create(Humanoid.prototype);
+
   // * Give the Hero and Villains different methods that could be used to remove health points from objects which could result in destruction if health gets to 0 or drops below 0;
+  function checkIfDead(){
+    if(this.healthPoints <= 0){
+      console.log(`${this.name} has been killed!`)
+    }
+  }
+  
+  Villain.prototype.spellAttack = function(target){
+    target.healthPoints -= this.spellDamage;
+    console.log(`${this.name} cast a spell hitting ${target.name} for ${this.spellDamage} damage!`);
+    checkIfDead.call(target);
+  }
+
+  Hero.prototype.meleAttack = function(target){
+    target.healthPoints -= this.meleDamage;
+    console.log(`${this.name} swings his ${this.weapons[0]} hitting ${target.name} for ${this.meleDamage} damage!`);
+    checkIfDead.call(target);
+  }
+
   // * Create two new objects, one a villain and one a hero and fight it out with methods!
+  const bandit = new Villain({
+    createdAt: new Date(),
+    dimensions: {
+      length: 2,
+      width: 1,
+      height: 1,
+    },
+    healthPoints: 4,
+    name: 'Martak',
+    team: 'Bandit Mages',
+    weapons: [
+      'wand',
+    ],
+    language: 'Common Tongue',
+    spellDamage: 3
+  });
+
+  const knight = new Hero({
+    createdAt: new Date(),
+    dimensions: {
+      length: 2,
+      width: 2,
+      height: 1,
+    },
+    healthPoints: 7,
+    name: 'Sir Iduno',
+    team: 'Castle Whatever',
+    weapons: [
+      'Sword of Metal',
+    ],
+    language: 'Common Tongue',
+    meleDamage: 2
+  });
+
+  console.log("--- Fight! ---");
+  
+  bandit.spellAttack(knight);
+  knight.meleAttack(bandit);
+  bandit.spellAttack(knight);
+  knight.meleAttack(bandit);
